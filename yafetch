@@ -1,0 +1,155 @@
+#!/bin/bash
+export LC_ALL=C
+INPUT="${1}"
+if [[ "${INPUT}" == "-w" ]]; then
+	export NO_ASCII=true
+fi
+tabs -8
+os_emoji=""
+kernel_emoji=""
+ram_emoji=""
+package_emoji=""
+uptime_emoji=""
+color_emoji=""
+hostname_emoji=""
+shell_emoji=""
+editor_emoji=""
+red="\e[0;91m"
+blue="\e[0;94m"
+green="\e[0;92m"
+magenta="\e[0;35m"
+cyan="\e[0;36m"
+yellow="\e[0;33m"
+bold_red="\e[1;91m"
+bold_blue="\e[1;94m"
+bold_green="\e[1;92m"
+bold_white="\e[1;97m"
+bold_cyan="\e[1;36m"
+bold_yellow="\e[1;33m"
+bold_magenta="\e[1;35m"
+bold="\e[1m"
+reset="\e[0m"
+
+function print_ascii() {
+	read -rd '' ascii_data <<'EOF'
+${c1} 	/@@@@@@@\
+      (@@@@@ # @@@@@\
+     (` \@@@@@@@@~~~~
+    /`    \@@@@@|
+   /@@     ''''  \
+  /@@@@\          |
+ /@@@@@@@\        |
+/@@@@@@@@@        |
+|@@@@@@@@         |
+|@@@@@@@          |
+|@@@@@@@          |
+|@@@'@@@@        |
+|@@@ '@@@        ;
+|@@@  @@;       ;
+|@@@  ''       ;
+(@@@@         ;
+ (@@@@        |
+  (__@@_______)
+EOF
+echo -E "${ascii_data//\$\{c1\}/$c1}"
+}
+
+function header() {
+	echo -e "--------------------[${bold_green}YAFETCH${reset}]--------------------"
+}
+
+function printline() {
+	local color="${1:?}"
+	echo -e "${!color}${2}\t${reset} ${3}"
+}
+
+function get_os() {
+	if [[ -f /bedrock/etc/bedrock-release ]]; then
+		echo "Bedrock"
+	else
+		lsb_release -si
+	fi
+}
+
+function get_kernel() {
+	uname -r
+}
+
+function get_ram() {
+	local mem="$(free -m | grep Mem)"
+	local free="$(awk '{print $3}' <<< "${mem}" | numfmt --to=iec)"
+	local total="$(awk '{print $2}' <<< "${mem}" | numfmt --to=iec)"
+	echo "${free/K/G}/${total/K/G}"
+}
+
+function get_package() {
+	declare -A output
+	local cmds=(apt pacman pacstall rpm xbps-query)
+	for i in "${cmds[@]}"; do
+		if command -v "${i}" &>/dev/null; then
+			local valid_cmds+=("${i}")
+		fi
+	done
+	for i in "${valid_cmds[@]}"; do
+		case "$i" in
+			apt)
+				local cmd="dpkg --list";;
+			pacman)
+				local cmd="pacman -Qq";;
+			pacstall)
+				local cmd="pacstall -L";;
+			rpm)
+				local cmd="rpm -qa";;
+			xbps-query)
+				local cmd="xbps-query -l";;
+		esac
+		output[${i}]="$($cmd 2>/dev/null | wc -l) ${i}"
+	done
+	echo "${output[@]}"
+}
+
+function get_uptime() {
+	local up="$(uptime -p)"
+	local hour="$(awk '{ print $2 }' <<< "$up")"
+	local minute="$(awk '{ print $4 }' <<< "$up")"
+	echo "${hour}H ${minute}M"
+}
+
+function get_hostname() {
+	hostname 2>/dev/null || cat /etc/hostname
+}
+
+function get_shell() {
+	basename "${SHELL}"
+}
+
+function get_editor() {
+	echo "${EDITOR:-$VISUAL}"
+}
+
+function get_colors() {
+	echo "${bold}${red}███${green}███${yellow}███${blue}███${magenta}███${cyan}███${reset}"
+}
+
+function output() {
+	printline "bold_red" "${hostname_emoji}" 	"$(get_hostname)"
+	printline "bold_yellow" "${os_emoji}" 		"$(get_os)"
+	printline "bold_green" "${shell_emoji}" 	"$(get_shell)"
+	printline "bold_blue" "${editor_emoji}" 	"$(get_editor)"
+	printline "bold_cyan" "${kernel_emoji}" 	"$(get_kernel)"
+	printline "bold_magenta" "${ram_emoji}" 	"$(get_ram)"
+	printline "bold_red" "${package_emoji}" 	"$(get_package) packages"
+	printline "bold_yellow" "${uptime_emoji}" "$(get_uptime)"
+	printline "bold_green" "${color_emoji}" 	"$(get_colors)"
+}
+
+header
+
+if [[ "${NO_ASCII}" == "true" ]]; then
+	output
+	exit
+else
+	paste <(print_ascii) <(output)
+	exit
+fi
+exit
