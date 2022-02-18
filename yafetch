@@ -13,6 +13,7 @@ uptime_emoji=""
 color_emoji=""
 hostname_emoji=""
 shell_emoji=""
+strata_emoji=""
 editor_emoji=""
 red="\e[0;91m"
 blue="\e[0;94m"
@@ -32,30 +33,22 @@ reset="\e[0m"
 
 function print_ascii() {
 	read -rd '' ascii_data <<'EOF'
-${c1} 	/@@@@@@@\
-      (@@@@@ # @@@@@\
-     (` \@@@@@@@@~~~~
-    /`    \@@@@@|
-   /@@     ''''  \
-  /@@@@\          |
- /@@@@@@@\        |
-/@@@@@@@@@        |
-|@@@@@@@@         |
-|@@@@@@@          |
-|@@@@@@@          |
-|@@@'@@@@        |
-|@@@ '@@@        ;
-|@@@  @@;       ;
-|@@@  ''       ;
-(@@@@         ;
- (@@@@        |
-  (__@@_______)
+${c1}        .___.      
+       /     \    
+      | O _ O |   
+      /  \_/  \  
+    .' /     \ `.
+   / _|       |_ \
+  (_/ |       | \_) 
+      \       /    
+     __\_>-<_/__
+     ~;/     \;~
 EOF
 echo -E "${ascii_data//\$\{c1\}/$c1}"
 }
 
 function header() {
-	echo -e "--------------------[${bold_green}YAFETCH${reset}]--------------------"
+	echo -e "${bold}--------------------${reset}[${bold_green}${reset}]${bold}--------------------${reset}"
 }
 
 function printline() {
@@ -127,6 +120,14 @@ function get_editor() {
 	echo "${EDITOR:-$VISUAL}"
 }
 
+if [[ -f /bedrock/etc/bedrock-release ]]; then
+	export BEDROCK=true
+	function get_strata() {
+		local strata=( $(brl list) )
+		echo "${strata[@]:1}"
+	}
+fi
+
 function get_colors() {
 	echo "${bold}${red}███${green}███${yellow}███${blue}███${magenta}███${cyan}███${reset}"
 }
@@ -139,6 +140,9 @@ function output() {
 	printline "bold_cyan" "${kernel_emoji}" 	"$(get_kernel)"
 	printline "bold_magenta" "${ram_emoji}" 	"$(get_ram)"
 	printline "bold_red" "${package_emoji}" 	"$(get_package) packages"
+	if [[ "${BEDROCK}" == "true" ]]; then
+		printline "bold_yellow" "${strata_emoji}" "$(get_strata)"
+	fi
 	printline "bold_yellow" "${uptime_emoji}" "$(get_uptime)"
 	printline "bold_green" "${color_emoji}" 	"$(get_colors)"
 }
