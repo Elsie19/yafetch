@@ -69,9 +69,9 @@ function get_kernel() {
 }
 
 function get_ram() {
-	local mem="$(free -m | grep Mem)"
-	local free="$(awk '{print $3}' <<< "${mem}" | numfmt --to=iec)"
-	local total="$(awk '{print $2}' <<< "${mem}" | numfmt --to=iec)"
+	local mem="$(free -m | head -2 | tail -1 | tr -s " ")"
+	local free="$(cut -f3 -d' ' <<< "${mem}" | numfmt --to=iec)"
+	local total="$(cut -f2 -d' ' <<< "${mem}" | numfmt --to=iec)"
 	echo "${free/K/G}/${total/K/G}"
 }
 
@@ -103,8 +103,8 @@ function get_package() {
 
 function get_uptime() {
 	local up="$(uptime -p)"
-	local hour="$(awk '{ print $2 }' <<< "$up")"
-	local minute="$(awk '{ print $4 }' <<< "$up")"
+	local hour="$(cut -f2 -d' ' <<< "$up")"
+	local minute="$(cut -f4 -d' ' <<< "$up")"
 	echo "${hour}H ${minute}M"
 }
 
