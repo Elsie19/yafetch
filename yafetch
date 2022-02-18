@@ -102,12 +102,18 @@ function get_package() {
 }
 
 function get_uptime() {
+	# taken from https://github.com/dylanaraps/neofetch
+	# Copyright (c) 2015-2021 Dylan Araps
+	# https://mit-license.org/
 	s=$(< /proc/uptime)
 	s=${s/.*}
-	d="$((s / 60 / 60 / 24)) days"
-	h="$((s / 60 / 60 % 24)) hours"
-	m="$((s / 60 % 60)) minutes"
-	echo "${d} ${h} ${m}"
+	d="$((s / 60 / 60 / 24))D"
+	h="$((s / 60 / 60 % 24))H"
+	m="$((s / 60 % 60))M"
+	uptime=${d:+$d, }${h:+$h, }$m
+	uptime=${uptime%', '}
+	uptime=${uptime:-$s seconds}
+	echo "${uptime}"
 }
 
 function get_hostname() {
