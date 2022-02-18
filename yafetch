@@ -102,10 +102,12 @@ function get_package() {
 }
 
 function get_uptime() {
-	local up="$(uptime -p)"
-	local hour="$(cut -f2 -d' ' <<< "$up")"
-	local minute="$(cut -f4 -d' ' <<< "$up")"
-	echo "${hour}H ${minute}M"
+	s=$(< /proc/uptime)
+	s=${s/.*}
+	d="$((s / 60 / 60 / 24)) days"
+	h="$((s / 60 / 60 % 24)) hours"
+	m="$((s / 60 % 60)) minutes"
+	echo "${d} ${h} ${m}"
 }
 
 function get_hostname() {
