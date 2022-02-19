@@ -15,7 +15,7 @@ yellow
 bold_*"
 exit
 else
-	export COLOR="${INPUT}"
+	export COLOR="${INPUT:-bold}"
 fi
 tabs -8
 os_emoji=""
